@@ -1,37 +1,47 @@
+import { renderHook, act } from '@testing-library/react-hooks'
 import { useArbitraryState } from "./index";
 
-test('Numbers Failed on useArbitraryState', () => {
-    const defaultNumbersState = [1, 2, 3, 4];
-    const defaultValue = 0;
-    expect(useArbitraryState(defaultNumbersState, defaultValue))
-})
+test('Empty default state Failed on useArbitraryState', () => {
+    const defaultEmptyState = [{ user: 'SomeOne' }];
+    const defaultValue = {} as { user: string };
+    try {
+        renderHook(() => useArbitraryState<{ user: string }>(defaultEmptyState, defaultValue));
+    } catch (err) {
+        expect(err.message).toBe(`Initial Value ${JSON.stringify(defaultValue)} isn't in states`);
+    }
+});
 
 test('Empty Failed on useArbitraryState', () => {
     const defaultEmptyState: [] = [];
-    const defaultValue = 0;
-    expect(useArbitraryState(defaultEmptyState, defaultValue))
-})
+    const defaultValue = { user: 'SomeOne'};
+    try {
+        renderHook(() => useArbitraryState<{ user: string }>(defaultEmptyState, defaultValue));
+    } catch(err) {
+        expect(err.message).toBe('You passed an empty states');
+    }
+});
 
-test('Objects Failed on useArbitraryState', () => {
-    const defaultArrayOfObjectsState = [{ user: 'Carl' }, { user: 'Tinder' }];
-    const defaultValue = { user: 'John' };
-    expect(useArbitraryState(defaultArrayOfObjectsState, defaultValue))
-})
+test('No state value Failed on useArbitraryState', () => {
+    const defaultEmptyState = [{ user: 'SomeOne'}];
+    const defaultValue = { user: 'SomeOne'};
+    const { result } = renderHook(() => useArbitraryState<{ user: string }>(defaultEmptyState, defaultValue));
 
-test('Objects Empty Failed on useArbitraryState', () => {
-    const defaultArrayOfObjectsState = [{ user: 'Carl' }, { user: 'Tinder' }];
-    const defaultValue = null;
-    expect(useArbitraryState(defaultArrayOfObjectsState, defaultValue))
-})
+    try {
+        act((): void => {
+            result.current[1]({ user: 'Somebody else'})
+        })
+    } catch (err) {
+        expect(err.message).toBe(`${JSON.stringify({ user: 'Somebody else'})} isn't in initial arbitrary state`)
+    }
+});
 
-test('Objects Success on useArbitraryState', () => {
-    const defaultArrayOfObjectsState = [{ user: 'Carl' }, { user: 'Tinder' }];
-    const defaultValue = { user: 'Carl' };
-    expect(useArbitraryState(defaultArrayOfObjectsState, defaultValue))
-})
+test('State Success on useArbitraryState', () => {
+    const defaultEmptyState = [{ user: 'SomeOne'}, { user: 'Somebody else' }];
+    const defaultValue = { user: 'SomeOne'};
+    const { result } = renderHook(() => useArbitraryState<{ user: string }>(defaultEmptyState, defaultValue));
 
-test('Strings Success on useArbitraryState', () => {
-    const defaultArrayOfObjectsState = ['Carl', 'Tinder'];
-    const defaultValue = 'Carl';
-    expect(useArbitraryState(defaultArrayOfObjectsState, defaultValue))
-})
+    act((): void => {
+        result.current[1]({ user: 'Somebody else'})
+    })
+    expect(result.current[0]).toEqual({ user: 'Somebody else'});
+});
