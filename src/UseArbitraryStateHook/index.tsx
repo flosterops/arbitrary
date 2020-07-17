@@ -5,7 +5,7 @@ const deepEqualCheck = (first: any, second: any): boolean => {
 }
 
 function useArbitraryState<T>(states: Array<T>, defaultValue: T): [T, Dispatch<T>] {
-    const [initialValue, setInitial] = useState<any>(defaultValue);
+    const [initialValue, setInitial] = useState<T>(defaultValue);
 
     useEffect((): void => {
         if (!states.length) {
